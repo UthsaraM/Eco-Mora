@@ -71,11 +71,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await signInWithPopup(auth, provider);
     } catch (error: any) {
       console.error("Popup failed, trying redirect", error);
-      alert("Authentication error: " + error.message);
+      
       if (error.code === 'auth/unauthorized-domain') {
-        alert("This domain is not authorized for Firebase Authentication. Please add your Vercel domain to your Firebase Console -> Authentication -> Settings -> Authorized domains.");
+        alert("Action Required: Your Vercel domain is not authorized for Firebase Auth.\n\nPlease go to Firebase Console -> Authentication -> Settings -> Authorized domains and add your Vercel URL.");
         throw error;
       }
+
+      if (error.code !== 'auth/popup-blocked' && error.code !== 'auth/popup-closed-by-user') {
+        // Only alert on unexpected errors, don't alert on standard popup blocks before redirecting
+        alert("Authentication error: " + error.message + ". Trying redirect fallback.");
+      }
+
       // Fallback to redirect for any popup issues
       console.log("Falling back to redirect auth...", error);
       const { signInWithRedirect } = await import('firebase/auth');
