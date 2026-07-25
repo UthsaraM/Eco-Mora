@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Car, Zap, Coffee, Check, ArrowRight, ArrowLeft } from 'lucide-react';
 import clsx from 'clsx';
+import { doc, getDoc, updateDoc, increment } from 'firebase/firestore';
+import { db } from '../firebase/config';
+import { useAuth } from '../contexts/AuthContext';
 
 const steps = [
   {
@@ -43,6 +46,7 @@ const steps = [
 ];
 
 export default function CarbonCalculator() {
+  const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [showResult, setShowResult] = useState(false);
@@ -51,11 +55,33 @@ export default function CarbonCalculator() {
     setAnswers(prev => ({ ...prev, [steps[currentStep].id]: value }));
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentStep < steps.length - 1) {
       setCurrentStep(prev => prev + 1);
     } else {
       setShowResult(true);
+      if (user) {
+        try {
+          const userRef = doc(db, 'Users', user.uid);
+          const userDoc = await getDoc(userRef);
+          if (userDoc.exists()) {
+            const currentActivities = userDoc.data().recentActivities || [];
+            const total = calculateTotal() * 120;
+            const newActivity = {
+              action: `Calculated Carbon Footprint (${total} kg/yr)`,
+              time: 'Just now',
+              pts: '+20'
+            };
+            
+            await updateDoc(userRef, {
+              carbonScore: increment(20),
+              recentActivities: [newActivity, ...currentActivities].slice(0, 5)
+            });
+          }
+        } catch (error) {
+          console.error("Error saving calc result:", error);
+        }
+      }
     }
   };
 

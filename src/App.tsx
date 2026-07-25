@@ -10,13 +10,14 @@ import { MainLayout } from './layouts/MainLayout';
 
 // Lazy loaded pages
 import React, { Suspense, lazy } from 'react';
-
 const LandingPage = lazy(() => import('./pages/LandingPage'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const EcoTracker = lazy(() => import('./pages/EcoTracker'));
 const CarbonCalculator = lazy(() => import('./pages/CarbonCalculator'));
 const Challenges = lazy(() => import('./pages/Challenges'));
 const AiCoach = lazy(() => import('./pages/AiCoach'));
+const Community = lazy(() => import('./pages/Community'));
+const Campaigns = lazy(() => import('./pages/Campaigns'));
 
 const queryClient = new QueryClient();
 
@@ -43,6 +44,8 @@ export default function App() {
                 <Route path="/calculator" element={<CarbonCalculator />} />
                 <Route path="/challenges" element={<Challenges />} />
                 <Route path="/coach" element={<AiCoach />} />
+                <Route path="/community" element={<Community />} />
+                <Route path="/videos" element={<Campaigns />} />
                 {/* Fallbacks for unbuilt routes */}
                 <Route path="*" element={<div className="p-8 text-center text-slate-500">Under Construction</div>} />
               </Route>
