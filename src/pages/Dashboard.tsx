@@ -153,7 +153,7 @@ export default function Dashboard() {
           </div>
           <div className="space-y-4">
             {activeChallenges.length > 0 ? activeChallenges.map((challenge: any, i: number) => {
-              const Icon = challenge.icon === 'Leaf' ? Leaf : challenge.icon === 'Target' ? Target : Trophy;
+              const Icon = challenge.icon === 'Leaf' ? Leaf : Trophy;
               return (
                 <div key={i} className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-emerald-500/30 hover:bg-emerald-500/10 transition-colors cursor-pointer group">
                   <div className="w-12 h-12 rounded-xl bg-slate-900/50 flex items-center justify-center text-slate-400 group-hover:text-emerald-400 shadow-sm border border-white/5 group-hover:border-emerald-500/30">

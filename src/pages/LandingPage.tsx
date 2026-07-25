@@ -12,12 +12,6 @@ export default function LandingPage() {
   const [visits, setVisits] = useState<number>(0);
 
   useEffect(() => {
-    if (user) {
-      navigate('/dashboard');
-    }
-  }, [user, navigate]);
-
-  useEffect(() => {
     const trackVisit = async () => {
       try {
         const statsRef = doc(db, 'Analytics', 'globalStats');
@@ -44,12 +38,8 @@ export default function LandingPage() {
     if (user) {
       navigate('/dashboard');
     } else {
-      try {
-        await signInWithGoogle();
-        navigate('/dashboard');
-      } catch (error) {
-        console.error("Login failed or redirecting:", error);
-      }
+      await signInWithGoogle();
+      navigate('/dashboard');
     }
   };
 
