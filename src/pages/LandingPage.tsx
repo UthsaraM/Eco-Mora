@@ -1,12 +1,38 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Leaf, Globe, Users, Trophy, ChevronRight, LogIn } from 'lucide-react';
+import { Leaf, Globe, Users, Trophy, ChevronRight, LogIn, Eye } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { doc, getDoc, setDoc, increment } from 'firebase/firestore';
+import { db } from '../firebase/config';
 
 export default function LandingPage() {
   const { signInWithGoogle, user } = useAuth();
   const navigate = useNavigate();
+  const [visits, setVisits] = useState<number>(0);
+
+  useEffect(() => {
+    const trackVisit = async () => {
+      try {
+        const statsRef = doc(db, 'Analytics', 'globalStats');
+        
+        // Only increment if not already visited in this session
+        if (!sessionStorage.getItem('hasVisited')) {
+          await setDoc(statsRef, { visits: increment(1) }, { merge: true });
+          sessionStorage.setItem('hasVisited', 'true');
+        }
+
+        const docSnap = await getDoc(statsRef);
+        if (docSnap.exists()) {
+          setVisits(docSnap.data().visits || 0);
+        }
+      } catch (error) {
+        console.error('Error tracking visit:', error);
+      }
+    };
+
+    trackVisit();
+  }, []);
 
   const handleLogin = async () => {
     if (user) {
@@ -93,7 +119,7 @@ export default function LandingPage() {
           {[
             { label: 'Trees Planted', value: '0', icon: Leaf },
             { label: 'Plastic Avoided', value: '0kg', icon: Globe },
-            { label: 'Students Joined', value: '0', icon: Users },
+            { label: 'Total Visits', value: visits.toString(), icon: Eye },
             { label: 'Challenges Met', value: '0', icon: Trophy },
           ].map((stat, i) => {
             const Icon = stat.icon;

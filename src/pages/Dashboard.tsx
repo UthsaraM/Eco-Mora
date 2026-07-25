@@ -1,21 +1,42 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
-import { Leaf, Flame, Target, Trophy, ArrowRight, CloudRain, Sun, Wind } from 'lucide-react';
+import { Leaf, Flame, Target, Trophy, ArrowRight, CloudRain, Sun, Wind, Activity } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '../firebase/config';
 
-const data = [
-  { name: 'Mon', score: 40 },
-  { name: 'Tue', score: 30 },
-  { name: 'Wed', score: 60 },
-  { name: 'Thu', score: 45 },
-  { name: 'Fri', score: 80 },
-  { name: 'Sat', score: 65 },
-  { name: 'Sun', score: 90 },
+const defaultData = [
+  { name: 'Mon', score: 0 },
+  { name: 'Tue', score: 0 },
+  { name: 'Wed', score: 0 },
+  { name: 'Thu', score: 0 },
+  { name: 'Fri', score: 0 },
+  { name: 'Sat', score: 0 },
+  { name: 'Sun', score: 0 },
 ];
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const [userData, setUserData] = useState<any>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    
+    const unsub = onSnapshot(doc(db, 'Users', user.uid), (doc) => {
+      if (doc.exists()) {
+        setUserData(doc.data());
+      }
+    });
+
+    return () => unsub();
+  }, [user]);
+
+  const weeklyProgress = userData?.weeklyProgress || defaultData;
+  const carbonScore = userData?.carbonScore || 0;
+  const streakDays = userData?.streakDays || 0;
+  const activeChallenges = userData?.activeChallenges || [];
+  const recentActivities = userData?.recentActivities || [];
 
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-8 z-10 relative">
@@ -65,7 +86,7 @@ export default function Dashboard() {
 
           <div className="h-64 w-full relative z-10">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <AreaChart data={weeklyProgress} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#34d399" stopOpacity={0.4}/>
@@ -97,13 +118,13 @@ export default function Dashboard() {
               <Target size={100} />
             </div>
             <h3 className="text-slate-300 font-medium mb-1">Carbon Score</h3>
-            <div className="text-5xl font-space font-bold mb-4 italic text-white">420<span className="text-2xl text-slate-400 not-italic ml-1">pt</span></div>
+            <div className="text-5xl font-space font-bold mb-4 italic text-white">{carbonScore}<span className="text-2xl text-slate-400 not-italic ml-1">pt</span></div>
             <div className="flex items-center justify-between mt-8">
-              <span className="text-sm text-slate-300">Level 4: Green Hero</span>
-              <span className="text-sm font-medium">80%</span>
+              <span className="text-sm text-slate-300">Level {Math.floor(carbonScore / 100) + 1}: {userData?.ecoLevel || 'Eco Beginner'}</span>
+              <span className="text-sm font-medium">{Math.min(100, (carbonScore % 100))}%</span>
             </div>
             <div className="w-full bg-slate-950/50 h-2 rounded-full mt-2 overflow-hidden border border-white/5">
-              <div className="bg-emerald-400 h-full rounded-full w-4/5 shadow-[0_0_8px_rgba(52,211,153,0.5)]" />
+              <div className="bg-emerald-400 h-full rounded-full shadow-[0_0_8px_rgba(52,211,153,0.5)]" style={{ width: `${Math.min(100, (carbonScore % 100))}%` }} />
             </div>
           </motion.div>
 
@@ -116,7 +137,7 @@ export default function Dashboard() {
             <div>
               <div className="text-slate-400 font-medium text-sm mb-1 uppercase tracking-wider">Current Streak</div>
               <div className="text-3xl font-space font-bold text-white flex items-center gap-2">
-                12 Days <Flame size={28} className="text-orange-500 drop-shadow-[0_0_10px_rgba(249,115,22,0.5)]" />
+                {streakDays} Days <Flame size={28} className={streakDays > 0 ? "text-orange-500 drop-shadow-[0_0_10px_rgba(249,115,22,0.5)]" : "text-slate-600"} />
               </div>
             </div>
           </motion.div>
@@ -131,11 +152,8 @@ export default function Dashboard() {
             <button className="text-emerald-400 text-sm font-medium hover:text-emerald-300 underline underline-offset-4">View All</button>
           </div>
           <div className="space-y-4">
-            {[
-              { title: 'Zero Plastic Week', progress: 75, daysLeft: 2, icon: Leaf },
-              { title: 'Walk to Campus', progress: 40, daysLeft: 5, icon: Trophy },
-            ].map((challenge, i) => {
-              const Icon = challenge.icon;
+            {activeChallenges.length > 0 ? activeChallenges.map((challenge: any, i: number) => {
+              const Icon = challenge.icon === 'Leaf' ? Leaf : Trophy;
               return (
                 <div key={i} className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-emerald-500/30 hover:bg-emerald-500/10 transition-colors cursor-pointer group">
                   <div className="w-12 h-12 rounded-xl bg-slate-900/50 flex items-center justify-center text-slate-400 group-hover:text-emerald-400 shadow-sm border border-white/5 group-hover:border-emerald-500/30">
@@ -152,7 +170,11 @@ export default function Dashboard() {
                   </div>
                 </div>
               )
-            })}
+            }) : (
+              <div className="text-slate-400 text-sm py-4 text-center border border-dashed border-white/10 rounded-xl">
+                No active challenges. Join one to get started!
+              </div>
+            )}
           </div>
         </div>
 
@@ -161,13 +183,9 @@ export default function Dashboard() {
             <h3 className="text-lg font-bold text-white">Recent Activity</h3>
           </div>
           <div className="space-y-6">
-            {[
-              { action: 'Completed Quiz: Ocean Life', time: '2 hours ago', pts: '+50' },
-              { action: 'Logged: Used reusable bottle', time: '5 hours ago', pts: '+10' },
-              { action: 'Reached Level 4!', time: 'Yesterday', pts: '+500' },
-            ].map((activity, i) => (
+            {recentActivities.length > 0 ? recentActivities.map((activity: any, i: number) => (
               <div key={i} className="flex gap-4 relative">
-                {i !== 2 && <div className="absolute top-8 bottom-[-24px] left-[15px] w-px bg-white/10" />}
+                {i !== recentActivities.length - 1 && <div className="absolute top-8 bottom-[-24px] left-[15px] w-px bg-white/10" />}
                 <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0 z-10 border border-emerald-500/30">
                   <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
                 </div>
@@ -177,7 +195,12 @@ export default function Dashboard() {
                 </div>
                 <div className="font-bold text-emerald-400">{activity.pts}</div>
               </div>
-            ))}
+            )) : (
+              <div className="text-slate-400 text-sm py-8 text-center flex flex-col items-center gap-2">
+                <Activity size={24} className="opacity-50" />
+                No recent activity to show.
+              </div>
+            )}
           </div>
         </div>
       </div>

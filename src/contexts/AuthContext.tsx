@@ -36,6 +36,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             photoURL: currentUser.photoURL,
             ecoLevel: 'Eco Beginner',
             totalPoints: 0,
+            carbonScore: 0,
+            streakDays: 0,
+            weeklyProgress: [
+              { name: 'Mon', score: 0 },
+              { name: 'Tue', score: 0 },
+              { name: 'Wed', score: 0 },
+              { name: 'Thu', score: 0 },
+              { name: 'Fri', score: 0 },
+              { name: 'Sat', score: 0 },
+              { name: 'Sun', score: 0 },
+            ],
+            activeChallenges: [
+              { title: 'Zero Plastic Week', progress: 0, daysLeft: 7, icon: 'Leaf' },
+              { title: 'Walk to Campus', progress: 0, daysLeft: 5, icon: 'Trophy' }
+            ],
+            recentActivities: [],
             createdAt: new Date(),
           });
         }

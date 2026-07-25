@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, Droplets, Zap, Recycle, TreePine, Bus, Coffee, ShoppingBag, Wind } from 'lucide-react';
 import clsx from 'clsx';
 import confetti from 'canvas-confetti';
+import { doc, getDoc, updateDoc, increment } from 'firebase/firestore';
+import { db } from '../firebase/config';
+import { useAuth } from '../contexts/AuthContext';
 
 const habits = [
   { id: 'h1', title: 'Reusable Water Bottle', pts: 10, icon: Droplets, color: 'text-blue-500', bg: 'bg-blue-100' },
@@ -16,24 +19,71 @@ const habits = [
 ];
 
 export default function EcoTracker() {
+  const { user } = useAuth();
   const [completed, setCompleted] = useState<string[]>([]);
   const [score, setScore] = useState(0);
 
-  const toggleHabit = (id: string, pts: number) => {
+  // Load daily completed from local storage to simulate daily reset, but sync score to firebase
+  useEffect(() => {
+    if (!user) return;
+    const today = new Date().toISOString().split('T')[0];
+    const stored = localStorage.getItem(`habits_${user.uid}_${today}`);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      setCompleted(parsed.completed || []);
+      setScore(parsed.score || 0);
+    }
+  }, [user]);
+
+  const toggleHabit = async (id: string, pts: number, title: string) => {
+    if (!user) return;
+    const today = new Date().toISOString().split('T')[0];
+
     if (completed.includes(id)) {
-      setCompleted(prev => prev.filter(h => h !== id));
-      setScore(prev => prev - pts);
-    } else {
-      setCompleted(prev => [...prev, id]);
-      setScore(prev => prev + pts);
+      // Revert (simplified local revert, no revert from db recent activities)
+      const newCompleted = completed.filter(h => h !== id);
+      const newScore = score - pts;
+      setCompleted(newCompleted);
+      setScore(newScore);
+      localStorage.setItem(`habits_${user.uid}_${today}`, JSON.stringify({ completed: newCompleted, score: newScore }));
       
-      // Confetti effect on completion
+      const userRef = doc(db, 'Users', user.uid);
+      await updateDoc(userRef, {
+        carbonScore: increment(-pts)
+      });
+    } else {
+      const newCompleted = [...completed, id];
+      const newScore = score + pts;
+      setCompleted(newCompleted);
+      setScore(newScore);
+      localStorage.setItem(`habits_${user.uid}_${today}`, JSON.stringify({ completed: newCompleted, score: newScore }));
+      
       confetti({
         particleCount: 50,
         spread: 60,
         origin: { y: 0.8 },
         colors: ['#10b981', '#34d399', '#0ea5e9']
       });
+
+      try {
+        const userRef = doc(db, 'Users', user.uid);
+        const userDoc = await getDoc(userRef);
+        if (userDoc.exists()) {
+          const currentActivities = userDoc.data().recentActivities || [];
+          const newActivity = {
+            action: `Completed: ${title}`,
+            time: 'Just now',
+            pts: `+${pts}`
+          };
+          
+          await updateDoc(userRef, {
+            carbonScore: increment(pts),
+            recentActivities: [newActivity, ...currentActivities].slice(0, 5) // Keep last 5
+          });
+        }
+      } catch (error) {
+        console.error('Error syncing habit:', error);
+      }
     }
   };
 
@@ -84,7 +134,7 @@ export default function EcoTracker() {
                   key={habit.id}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  onClick={() => toggleHabit(habit.id, habit.pts)}
+                  onClick={() => toggleHabit(habit.id, habit.pts, habit.title)}
                   className={clsx(
                     "relative p-4 rounded-2xl border cursor-pointer transition-all duration-300 flex items-center gap-4 group backdrop-blur-md",
                     isCompleted 
