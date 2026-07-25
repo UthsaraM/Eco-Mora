@@ -71,13 +71,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await signInWithPopup(auth, provider);
     } catch (error: any) {
       console.error("Popup failed, trying redirect", error);
-      if (error.code === 'auth/popup-blocked' || error.code === 'auth/popup-closed-by-user' || error.message) {
+      if (error.code === 'auth/unauthorized-domain') {
+        alert("This domain is not authorized for Firebase Authentication. Please add your Vercel domain to your Firebase Console -> Authentication -> Settings -> Authorized domains.");
+        throw error;
+      }
+      if (error.code === 'auth/popup-blocked' || error.code === 'auth/popup-closed-by-user') {
         // Fallback to redirect if popup is blocked or fails in iframe
         const { signInWithRedirect } = await import('firebase/auth');
         await signInWithRedirect(auth, provider);
         // Prevent further execution while page redirects
         await new Promise(() => {});
       } else {
+        alert(error.message);
         throw error;
       }
     }
