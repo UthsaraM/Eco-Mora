@@ -67,27 +67,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
+    const isIframe = window !== window.parent;
+
     try {
-      await signInWithPopup(auth, provider);
+      if (isIframe) {
+        // Use popup for AI Studio iframe preview
+        await signInWithPopup(auth, provider);
+      } else {
+        // Use redirect for Vercel/deployed environments to avoid popup blockers and mobile issues
+        const { signInWithRedirect } = await import('firebase/auth');
+        await signInWithRedirect(auth, provider);
+        // Prevent further execution while page redirects
+        await new Promise(() => {});
+      }
     } catch (error: any) {
-      console.error("Popup failed, trying redirect", error);
+      console.error("Auth failed:", error);
       
       if (error.code === 'auth/unauthorized-domain') {
         alert("Action Required: Your Vercel domain is not authorized for Firebase Auth.\n\nPlease go to Firebase Console -> Authentication -> Settings -> Authorized domains and add your Vercel URL.");
-        throw error;
+      } else {
+        alert("Authentication error: " + error.message);
       }
-
-      if (error.code !== 'auth/popup-blocked' && error.code !== 'auth/popup-closed-by-user') {
-        // Only alert on unexpected errors, don't alert on standard popup blocks before redirecting
-        alert("Authentication error: " + error.message + ". Trying redirect fallback.");
-      }
-
-      // Fallback to redirect for any popup issues
-      console.log("Falling back to redirect auth...", error);
-      const { signInWithRedirect } = await import('firebase/auth');
-      await signInWithRedirect(auth, provider);
-      // Prevent further execution while page redirects
-      await new Promise(() => {});
+      throw error;
     }
   };
 
