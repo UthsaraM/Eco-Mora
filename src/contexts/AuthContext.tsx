@@ -23,6 +23,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    import('firebase/auth').then(({ getRedirectResult }) => {
+      getRedirectResult(auth).catch(console.error);
+    });
+
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       if (currentUser) {
@@ -63,7 +67,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
-    await signInWithPopup(auth, provider);
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (error: any) {
+      console.error("Popup failed, trying redirect", error);
+      alert("Authentication error: " + error.message);
+      if (error.code === 'auth/unauthorized-domain') {
+        alert("This domain is not authorized for Firebase Authentication. Please add your Vercel domain to your Firebase Console -> Authentication -> Settings -> Authorized domains.");
+        throw error;
+      }
+      // Fallback to redirect for any popup issues
+      console.log("Falling back to redirect auth...", error);
+      const { signInWithRedirect } = await import('firebase/auth');
+      await signInWithRedirect(auth, provider);
+      // Prevent further execution while page redirects
+      await new Promise(() => {});
+    }
   };
 
   const logout = () => signOut(auth);
