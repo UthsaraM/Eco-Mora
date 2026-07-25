@@ -74,7 +74,10 @@ export default function LandingPage() {
               Get Started
               <ChevronRight size={18} />
             </button>
-            <button className="px-8 py-4 bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/10 rounded-full font-medium transition-all text-white">
+            <button 
+              onClick={() => window.open('https://vt.tiktok.com/ZSX3TW6eu/', '_blank')}
+              className="px-8 py-4 bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/10 rounded-full font-medium transition-all text-white"
+            >
               Watch Campaign
             </button>
           </div>
