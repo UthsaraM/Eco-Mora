@@ -12,7 +12,7 @@ export default function Community() {
     const fetchUsers = async () => {
       try {
         const snapshot = await getDocs(collection(db, 'Users'));
-        const usersList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const usersList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[];
         // Sort by carbonScore
         usersList.sort((a, b) => (b.carbonScore || 0) - (a.carbonScore || 0));
         setUsers(usersList);

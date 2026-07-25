@@ -38,8 +38,12 @@ export default function LandingPage() {
     if (user) {
       navigate('/dashboard');
     } else {
-      await signInWithGoogle();
-      navigate('/dashboard');
+      try {
+        await signInWithGoogle();
+        navigate('/dashboard');
+      } catch (error) {
+        console.error("Login failed or redirecting:", error);
+      }
     }
   };
 
