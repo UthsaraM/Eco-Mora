@@ -7,6 +7,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { MainLayout } from './layouts/MainLayout';
+import { Analytics } from '@vercel/analytics/react';
 
 // Lazy loaded pages
 import React, { Suspense, lazy } from 'react';
@@ -51,6 +52,7 @@ export default function App() {
               </Route>
             </Routes>
           </Suspense>
+          <Analytics />
         </Router>
       </AuthProvider>
     </QueryClientProvider>
