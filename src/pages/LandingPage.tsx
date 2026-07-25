@@ -88,10 +88,10 @@ export default function LandingPage() {
           className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 mt-24 max-w-5xl mx-auto w-full"
         >
           {[
-            { label: 'Trees Planted', value: '1,240', icon: Leaf },
-            { label: 'Plastic Avoided', value: '850kg', icon: Globe },
-            { label: 'Students Joined', value: '4,500+', icon: Users },
-            { label: 'Challenges Met', value: '12K', icon: Trophy },
+            { label: 'Trees Planted', value: '0', icon: Leaf },
+            { label: 'Plastic Avoided', value: '0kg', icon: Globe },
+            { label: 'Students Joined', value: '0', icon: Users },
+            { label: 'Challenges Met', value: '0', icon: Trophy },
           ].map((stat, i) => {
             const Icon = stat.icon;
             return (
