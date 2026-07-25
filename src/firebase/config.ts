@@ -3,14 +3,15 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
-  projectId: "clean-glyph-h6pck",
-  appId: "1:124316820349:web:afa9f6c6d09ded9f6da214",
-  apiKey: "AIzaSyCnB8CWQyzLdfe_6EULs-5sDZihHy4jVxo",
-  authDomain: "clean-glyph-h6pck.firebaseapp.com",
-  storageBucket: "clean-glyph-h6pck.firebasestorage.app",
-  messagingSenderId: "124316820349",
+  apiKey: "AIzaSyBfVH8TNheDWBtATgBWW3_YLLegOQXB6V4",
+  authDomain: "eco-uom.firebaseapp.com",
+  projectId: "eco-uom",
+  storageBucket: "eco-uom.firebasestorage.app",
+  messagingSenderId: "622721006481",
+  appId: "1:622721006481:web:551c1f7221c3458c17f830",
+  measurementId: "G-QMM82DNGGG"
 };
 
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
-export const db = getFirestore(app, 'ai-studio-15e222c0-7ae5-4be9-81aa-d00c54ac9920');
+export const db = getFirestore(app);

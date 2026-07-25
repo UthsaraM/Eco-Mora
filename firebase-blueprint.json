@@ -1,0 +1,43 @@
+{
+  "collections": [
+    {
+      "name": "Users",
+      "fields": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "email",
+          "type": "string"
+        },
+        {
+          "name": "photoURL",
+          "type": "string",
+          "optional": true
+        },
+        {
+          "name": "ecoLevel",
+          "type": "string"
+        },
+        {
+          "name": "totalPoints",
+          "type": "number"
+        },
+        {
+          "name": "createdAt",
+          "type": "timestamp"
+        }
+      ],
+      "rules": [
+        {
+          "allow": [
+            "read",
+            "write"
+          ],
+          "condition": "request.auth != null && request.auth.uid == documentId"
+        }
+      ]
+    }
+  ]
+}
