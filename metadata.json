@@ -1,0 +1,6 @@
+{
+  "name": "EcoImpact UoM",
+  "description": "Climate Change Awareness Platform designed for the University of Moratuwa to encourage students to adopt sustainable lifestyles through gamification, education, and AI assistance.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
